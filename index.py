@@ -14,7 +14,16 @@ from copy import deepcopy as dc
 
 from filtros import *
 
+
+delta = (0, 4)
+theta = (4, 8)   # meditação, imaginação e criatividade
+alpha = (8, 12)  # relaxamento e alerta, mas não focados em algo; calma, criatividade e meditação
+beta = (12, 30)  # alerta e foco em atividade específica
+gamma = (30, 100)
+
+
 def carregamento():
+    
     print("Fazendo o carregamento dos dados")
     
     with open('EEG_Rhythms/datasets/OpenBCI_GUI-v5-meditation.txt') as arquivo:
@@ -31,7 +40,9 @@ def carregamento():
     
     np.save("EEG_Rhythms/datasets/OpenBCI_GUI-v5-meditation.npy", data)
     
+
 def preprocessamento():
+
     print("Fazendo o preprocessamento dos dados")
     
     data = np.load('EEG_Rhythms/datasets/OpenBCI_GUI-v5-meditation.npy')
@@ -45,9 +56,44 @@ def preprocessamento():
     
     np.save("EEG_Rhythms/datasets/OpenBCI_GUI-v5-meditation_filtered.npy", X_f)
 
-# def experimento(arquivo, taxa_amostragem, tempo, escala=False, simulacao=False):
 
+def experimento(arquivo, taxa_amostragem, tempo, escala=False, simulacao=False):
     
+    buffer = []
+
+    # carrega os dados preparados e preprocessados
+    data = np.load(arquivo)
+
+    # define os campos que serão exibidos
+    fields = ['delta', 'theta', 'alpha', 'beta', 'gamma'] 
+
+    # abre o arquivo para escrita
+    with open(arquivo, 'w') as arquivo_csv:  
+        escritor_csv = csv.writer(arquivo_csv)  
+        escritor_csv.writerow(fields)
+
+        # buffer = data[:,:]
+
+        # f, Pxx = welch(buffer)
+
+        # X = np.average(Pxx, axis=0)
+
+        # features = list()
+
+        # for mi, ma in [delta, theta, alpha, beta, gamma]:
+        #     features.append(X[mi:ma])
+
+        # features = [np.average(f) for f in features]
+
+        # caso escala seja true, aplicar a escala
+        if escala:
+            buffer *= escala
+
+        # caso seja uma simulação, exibir os prints
+        # if simulacao:
+            # print(f'delta: {features[0]}, theta: {features[1]}, alpha: {features[2]}, beta:  {features[3]}, gamma: {features[4]}')
+
+
 def main():
     
     arquivo = argv[1]
@@ -59,16 +105,41 @@ def main():
     if argv[4] == "-":
         escala = False
     else:
-        escala = float(argv[4])
+        escala = float(argv[4]) 
     
     if argv[5] == "-":    
         simulacao = False
     else:
-        simulacao = bool(argv[5]) if len(argv) >= 6 else False
+        simulacao = bool(argv[5]) 
     
     carregamento()
     preprocessamento()
-    # experimento(arquivo, taxa_amostragem, tempo, escala, simulacao)
+    experimento(arquivo, taxa_amostragem, tempo, escala, simulacao)
 
 if __name__ == "__main__":
     main()
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+        # 5 tempo - 250 é igual a taxa_amostragem, a quantidade de pontos que eu pego é de 1250
+
+        # eu preciso definir o tamanho da janela
