@@ -72,26 +72,27 @@ def experimento(arquivo, taxa_amostragem, tempo, escala=False, simulacao=False):
         escritor_csv = csv.writer(arquivo_csv)  
         escritor_csv.writerow(fields)
 
-        # buffer = data[:,:]
+        buffer = data[:,0:20000]
 
-        # f, Pxx = welch(buffer)
+        # verificar depois o tamanho do nperseg
+        f, Pxx = welch(buffer, nperseg=128)
 
-        # X = np.average(Pxx, axis=0)
+        X = np.average(Pxx, axis=0)
 
-        # features = list()
+        features = list()
 
-        # for mi, ma in [delta, theta, alpha, beta, gamma]:
-        #     features.append(X[mi:ma])
+        for mi, ma in [delta, theta, alpha, beta, gamma]:
+            features.append(X[mi:ma])
 
-        # features = [np.average(f) for f in features]
+        features = [np.average(f) for f in features]
 
         # caso escala seja true, aplicar a escala
         if escala:
             buffer *= escala
 
         # caso seja uma simulação, exibir os prints
-        # if simulacao:
-            # print(f'delta: {features[0]}, theta: {features[1]}, alpha: {features[2]}, beta:  {features[3]}, gamma: {features[4]}')
+        if simulacao:
+            print(f'[delta: {features[0]}, theta: {features[1]}, alpha: {features[2]}, beta:  {features[3]}, gamma: {features[4]}]')
 
 
 def main():
