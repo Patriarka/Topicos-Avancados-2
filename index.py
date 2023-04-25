@@ -93,7 +93,9 @@ def experimento(arquivo, taxa_amostragem, tempo, escala=False, simulacao=False):
         # caso seja uma simulação, exibir os prints
         if simulacao:
             print(f'[delta: {features[0]}, theta: {features[1]}, alpha: {features[2]}, beta:  {features[3]}, gamma: {features[4]}]')
-
+            
+        escritor_csv.writerow(features)
+        
 
 def main():
     
