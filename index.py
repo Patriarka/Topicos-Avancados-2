@@ -11,6 +11,7 @@ from scipy.signal import welch
 from copy import deepcopy as dc
 
 from filtros import *
+from sklearn.preprocessing import minmax_scale
 
 
 delta = (0, 4)
@@ -39,6 +40,7 @@ def carregamento(arquivo):
             data.append([float(d[1:]) for d in cols.split(',') if d])
     
     data = np.array(data[1:])
+    
 
 def preprocessamento(taxa_amostragem):
     
@@ -63,7 +65,7 @@ def experimento(taxa_amostragem=250, tempo=1, escala=False, simulacao=False):
     buffer = []
 
     # define os campos que serão exibidos
-    fields = ['max_momento','delta', 'theta', 'alpha', 'beta', 'gamma'] 
+    fields = ['max_momento', 'delta', 'theta', 'alpha', 'beta', 'gamma'] 
 
     # abre o arquivo para escrita
     with open('results.csv', 'w', newline='') as arquivo_csv:  
@@ -85,8 +87,8 @@ def experimento(taxa_amostragem=250, tempo=1, escala=False, simulacao=False):
         while True:
             # seleciona a janela atual
             buffer = X_f[:, i * overlap : i * overlap + janela]  
+
             i += 1
-            
             # verifica se a janela atual é menor que a janela definida, se sim, interrompe o loop pois chegou ao fim
             if buffer.shape[1] < janela:
                 break
@@ -120,7 +122,7 @@ def experimento(taxa_amostragem=250, tempo=1, escala=False, simulacao=False):
 
             # caso escala seja true, aplicar a escala
             if escala:
-                features = [f * escala for f in features]
+                features = minmax_scale(features, feature_range=(0, escala))
 
             # caso seja uma simulação, exibir os prints
             if simulacao:
