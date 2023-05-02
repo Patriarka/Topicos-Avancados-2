@@ -83,12 +83,14 @@ def experimento(taxa_amostragem=250, tempo=1, escala=False, simulacao=False):
         
         # variável para armazenar o momento máximo
         max_momento = 0
-
+        
         while True:
+            
             # seleciona a janela atual
             buffer = X_f[:, i * overlap : i * overlap + janela]  
 
             i += 1
+            
             # verifica se a janela atual é menor que a janela definida, se sim, interrompe o loop pois chegou ao fim
             if buffer.shape[1] < janela:
                 break
@@ -108,19 +110,16 @@ def experimento(taxa_amostragem=250, tempo=1, escala=False, simulacao=False):
             # Define as faixas de frequência para cada tipo de onda cerebral
             # (delta, theta, alpha, beta e gamma)
             for mi, ma in [delta, theta, alpha, beta, gamma]:
-                features.append(np.sum(X[mi:ma]))
+                features.append(X[mi:ma])
 
             # Calcula a média das intensidades das ondas cerebrais para cada faixa de frequência
             features = [np.average(f) for f in features]
             
             # atualiza o momento máximo, se necessário
             # tempo em segundos correspondente ao início da janela atual
-            momento_atual = i * overlap / taxa_amostragem
+            max_momento = i * overlap / taxa_amostragem
             
-            if momento_atual > max_momento:
-                max_momento = momento_atual
-
-            # caso escala seja true, aplicar a escala
+            # caso escala tenha um valor, aplicar a escala
             if escala:
                 features = minmax_scale(features, feature_range=(0, escala))
 
