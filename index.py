@@ -57,8 +57,7 @@ def preprocessamento(taxa_amostragem):
     X_f = butter_lowpass(X_f, 50., fs=taxa_amostragem)
     X_f = butter_highpass(X_f, 3., fs=taxa_amostragem)
 
-
-def experimento(taxa_amostragem=250, tempo=1, escala=False, simulacao=False):
+def experimento(taxa_amostragem=250, tempo=1, escala=False, simulacao=False, update=1):
     
     global X_f
     
@@ -66,7 +65,7 @@ def experimento(taxa_amostragem=250, tempo=1, escala=False, simulacao=False):
 
     # define os campos que serão exibidos
     fields = ['max_momento', 'delta', 'theta', 'alpha', 'beta', 'gamma'] 
-
+        
     # abre o arquivo para escrita
     with open('results.csv', 'w', newline='') as arquivo_csv:  
         escritor_csv = csv.writer(arquivo_csv)  
@@ -74,32 +73,31 @@ def experimento(taxa_amostragem=250, tempo=1, escala=False, simulacao=False):
 
         # tamanho da janela para calcular a PSD com welch
         janela = int(taxa_amostragem * tempo)  
-        
-        # as janelas se sobrepõem pela metade
-        overlap = int(janela * 0.5)  # overlap de 50%
 
-        # contador para controlar a quantidade de janelas processadas
-        i = 0 
-        
         # variável para armazenar o momento máximo
-        max_momento = 0
+        max_momento = tempo
+        taxa_att = 0
         
         while True:
-            
-            # seleciona a janela atual
-            buffer = X_f[:, i * overlap : i * overlap + janela]  
+            begin_index = int(taxa_att * taxa_amostragem)
+            end_index = int(taxa_att * taxa_amostragem) + janela
 
-            i += 1
-            
+            taxa_att += update
+
+            # seleciona a janela atual
+            buffer = X_f[:, begin_index : end_index]  
+
             # verifica se a janela atual é menor que a janela definida, se sim, interrompe o loop pois chegou ao fim
             if buffer.shape[1] < janela:
                 break
             
-            # Define o tamanho da janela para o método de Welch
-            nperseg = min(janela, X_f.shape[1])
+            nperseg = 256
+            
+            if janela < 256:
+                nperseg = min(janela, buffer.shape[1])
 
             # Calcula o espectrograma usando o método de Welch
-            f, Pxx = welch(buffer, fs=taxa_amostragem, nperseg=nperseg)
+            f, Pxx = welch(buffer, nperseg=nperseg)
 
             # Calcula a média das potências espectrais para cada janela
             X = np.average(Pxx, axis=0)
@@ -115,10 +113,6 @@ def experimento(taxa_amostragem=250, tempo=1, escala=False, simulacao=False):
             # Calcula a média das intensidades das ondas cerebrais para cada faixa de frequência
             features = [np.average(f) for f in features]
             
-            # atualiza o momento máximo, se necessário
-            # tempo em segundos correspondente ao início da janela atual
-            max_momento = i * overlap / taxa_amostragem
-            
             # caso escala tenha um valor, aplicar a escala
             if escala:
                 features = minmax_scale(features, feature_range=(0, escala))
@@ -126,10 +120,11 @@ def experimento(taxa_amostragem=250, tempo=1, escala=False, simulacao=False):
             # caso seja uma simulação, exibir os prints
             if simulacao:
                 print(f'[momento: {max_momento}, delta: {features[0]}, theta: {features[1]}, alpha: {features[2]}, beta:  {features[3]}, gamma: {features[4]}]')
-                time.sleep(1)
-            
+                time.sleep(update)
+
             escritor_csv.writerow([max_momento, *features])
             
+            max_momento += update
 
 def main():
     
@@ -149,11 +144,13 @@ def main():
     else:
         simulacao = bool(argv[5]) 
     
+    update = float(argv[6])
+
     carregamento(arquivo)
     
     preprocessamento(taxa_amostragem)
     
-    experimento(taxa_amostragem, tempo, escala, simulacao)
+    experimento(taxa_amostragem, tempo, escala, simulacao, update)
 
 
 if __name__ == "__main__":
