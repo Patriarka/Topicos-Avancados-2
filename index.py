@@ -86,7 +86,7 @@ def experimento(taxa_amostragem=250, tempo=1, escala=False, simulacao=False, upd
 
             # seleciona a janela atual
             buffer = X_f[:, begin_index : end_index]  
-
+            
             # verifica se a janela atual é menor que a janela definida, se sim, interrompe o loop pois chegou ao fim
             if buffer.shape[1] < janela:
                 break
@@ -97,7 +97,7 @@ def experimento(taxa_amostragem=250, tempo=1, escala=False, simulacao=False, upd
                 nperseg = min(janela, buffer.shape[1])
 
             # Calcula o espectrograma usando o método de Welch
-            f, Pxx = welch(buffer, nperseg=nperseg)
+            f, Pxx = welch(buffer, fs=taxa_amostragem, nperseg=nperseg)
 
             # Calcula a média das potências espectrais para cada janela
             X = np.average(Pxx, axis=0)
@@ -112,17 +112,17 @@ def experimento(taxa_amostragem=250, tempo=1, escala=False, simulacao=False, upd
 
             # Calcula a média das intensidades das ondas cerebrais para cada faixa de frequência
             features = [np.average(f) for f in features]
+
+            escritor_csv.writerow([max_momento, *features])
             
             # caso escala tenha um valor, aplicar a escala
             if escala:
                 features = minmax_scale(features, feature_range=(0, escala))
-
+                
             # caso seja uma simulação, exibir os prints
             if simulacao:
                 print(f'[momento: {max_momento}, delta: {features[0]}, theta: {features[1]}, alpha: {features[2]}, beta:  {features[3]}, gamma: {features[4]}]')
-                time.sleep(update)
-
-            escritor_csv.writerow([max_momento, *features])
+                time.sleep(update)    
             
             max_momento += update
 
@@ -149,9 +149,8 @@ def main():
     carregamento(arquivo)
     
     preprocessamento(taxa_amostragem)
-    
+        
     experimento(taxa_amostragem, tempo, escala, simulacao, update)
-
 
 if __name__ == "__main__":
     main()
